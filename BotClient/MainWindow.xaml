@@ -93,6 +93,20 @@
                 <materialDesign:PackIcon Kind="Send"/>                                                
             </Button>
         </Grid>
+        <Menu>
+            <MenuItem>
+                <MenuItem.Header>
+                    <materialDesign:PackIcon Kind="Menu"/>
+                </MenuItem.Header>
+                <MenuItem x:Name="SaveItem" Header="Save"
+                          Icon="{materialDesign:PackIcon Kind=ContentSave}" Click="SaveItem_Click"></MenuItem>                
+                <MenuItem x:Name="ExitItem" Header="Exit"
+                          InputGestureText="Esc"
+                          Icon="{materialDesign:PackIcon Kind=ExitToApp}" Click="ExitItem_Click" />
+                <Separator/>
+                <MenuItem x:Name="DocumentItem" Header="Documents" Click="DocumentItem_Click"/>
+            </MenuItem>
+        </Menu>
         <materialDesign:PopupBox  Style="{StaticResource MaterialDesignMultiFloatingActionDarkPopupBox}"
                                   PlacementMode="TopAndAlignCentres"
                                   ToggleCheckedContentCommand="{Binding FloatingActionDemoCommand}"
@@ -100,12 +114,18 @@
                                   ToolTip="Полезные ссылки"
                                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                                   Grid.Column="0"
-                                  Grid.Row="1" VerticalAlignment="Bottom" Margin="20,0,0,20">
+                                  Grid.Row="1" VerticalAlignment="Bottom" Margin="20,0,0,20" Cursor="Hand">
+            <materialDesign:PopupBox.ToggleContent>
+                <materialDesign:PackIcon
+                    Kind="AboutCircleOutline"
+                    Width="30"
+                    Height="30" />
+            </materialDesign:PopupBox.ToggleContent>
             <materialDesign:PopupBox.ToggleCheckedContent>
                 <materialDesign:PackIcon
-                    Kind="Pencil"
-                    Width="24"
-                    Height="24" />
+                    Kind="About"
+                    Width="30"
+                    Height="30" />
             </materialDesign:PopupBox.ToggleCheckedContent>
             <StackPanel>
                 <Button x:Name="GitHubButton" ToolTip="Github" Click="GitHubButton_Click">
@@ -171,7 +191,7 @@
                                 <TextBlock Margin="0,5" 
                                            FontSize="16" 
                                            FontWeight="Normal" 
-                                           Text="{Binding LastMessage}" 
+                                           Text="{Binding Message}" 
                                            TextWrapping="WrapWithOverflow" 
                                            FontStyle="Italic" FontFamily="Roboto"/>
                                 <TextBlock Text="{Binding Time}" 

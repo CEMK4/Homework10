@@ -19,16 +19,16 @@ namespace BotClient
         private TelegramBotClient bot;        
         public ObservableCollection<UserLog> BotLog { get; set; }
 
-        static List<string> documentList = new List<string>();
+        public Dictionary<long, List<string>> documentList = new Dictionary<long, List<string>>();
         static bool uploadFlag = false;
-        static string destinationPreset = $@"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads")}\saved_";
+        public string destinationPreset = $@"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads")}\TrainingBot\";
         public TelegramBot(MainWindow main)
         {           
             BotLog = new ObservableCollection<UserLog>();            
             mainWindow = main;
-            string token = "5610884756:AAGXC3wI17yppGNRQae8LOgcV1XJ_2UihbU";
+            string token = "PLACEHOLDER";
             bot = new TelegramBotClient(token);
-            bot.StartReceiving(Update, Error);            
+            bot.StartReceiving(Update, Error);                
         }
 
         async Task Update(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -53,8 +53,8 @@ namespace BotClient
                     int number = int.Parse(message.Text);
                     if (number >= 1 && number <= documentList.Count)
                     {
-                        string fileName = documentList[number - 1];
-                        Stream stream = System.IO.File.OpenRead(destinationPreset + fileName);
+                        string fileName = documentList[message.Chat.Id][number - 1];
+                        Stream stream = System.IO.File.OpenRead(destinationPreset + $"{message.Chat.Id}\\" + fileName);
                         await botClient.SendDocumentAsync(message.Chat.Id, new InputOnlineFile(stream, fileName));
                         stream.Close();
                     }
@@ -87,9 +87,9 @@ namespace BotClient
                                         {
                                             string list = "";
                                             await botClient.SendTextMessageAsync(message.Chat.Id, "Cписок всех сохранённых документов:\n");
-                                            for (int index = 0; index < documentList.Count; index++)
+                                            for (int index = 0; index < documentList[message.Chat.Id].Count; index++)
                                             {
-                                                list += $"{documentList[index]}\n";
+                                                list += $"{documentList[message.Chat.Id][index]}\n";
                                             }
                                             await botClient.SendTextMessageAsync(message.Chat.Id, $"{list}\n");
                                         }
@@ -104,9 +104,9 @@ namespace BotClient
                                             uploadFlag = true;
                                             string list = "";
                                             await botClient.SendTextMessageAsync(message.Chat.Id, "Введите номер документа для скачивания:\n");
-                                            for (int index = 0; index < documentList.Count; index++)
+                                            for (int index = 0; index < documentList[message.Chat.Id].Count; index++)
                                             {
-                                                list += $"{index + 1}.  {documentList[index]}\n";
+                                                list += $"{index + 1}.  {documentList[message.Chat.Id][index]}\n";
                                             }
                                             await botClient.SendTextMessageAsync(message.Chat.Id, $"{list}\n");
                                         }
@@ -123,8 +123,13 @@ namespace BotClient
                         }
                     case Telegram.Bot.Types.Enums.MessageType.Document:
                         {
-                            documentList.Add(message.Document.FileName);
-                            string destinationFilePath = destinationPreset + $"{message.Document.FileName}";
+                            string userFolder = destinationPreset + $"{message.Chat.Id}\\";
+                            string fileName = $"{message.Document.FileName}";
+                            CheckID(message.Chat.Id);
+                            documentList[message.Chat.Id].Add(fileName);
+                            CheckMainFolder();
+                            CheckUserFolder(userFolder);
+                            string destinationFilePath = userFolder + fileName;
                             FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
                             var file = await botClient.GetInfoAndDownloadFileAsync(message.Document.FileId, fileStream);
                             await botClient.SendTextMessageAsync(message.Chat.Id, $"Файл {message.Document.FileName} сохранён.");
@@ -157,13 +162,35 @@ namespace BotClient
             throw new NotImplementedException();
         }
 
-        public static bool IsNumber(string number)
+        public bool IsNumber(string number)
         {
             bool result = true;
             foreach (char digit in number)
                 if (!char.IsDigit(digit))
                     result = false;
             return result;
+        }
+
+        private void CheckID(long ID)
+        {
+            if (!documentList.ContainsKey(ID))
+                documentList.Add(ID, new List<string>());
+        }
+
+        private void CheckMainFolder()
+        {
+            if (!Directory.Exists(destinationPreset))
+            {
+                Directory.CreateDirectory(destinationPreset);
+            }
+        }
+
+        private void CheckUserFolder(string folder)
+        {
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
         }
     }
 }

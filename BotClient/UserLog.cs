@@ -10,13 +10,13 @@ namespace BotClient
     public class UserLog
     {
         public string Name { get; set; }
-        public string LastMessage { get; set; }
+        public string Message { get; set; }
         public string Time { get; set; }
         public long ID { get; set; }        
-        public UserLog(string name, string lastMessage, string time, long id)
+        public UserLog(string name, string message, string time, long id)
         {
             Name = name;
-            LastMessage = lastMessage;
+            Message = message;
             Time = time;
             ID = id;            
         }
